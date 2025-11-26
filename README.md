@@ -1,31 +1,105 @@
-# AI vs Real Image Classification
+# AI vs Real Image and Video Classification
 
-Binary image classification project to distinguish between AI-generated images and real photographs. Implements EfficientNetB0 transfer learning and custom CNN architectures.
+MLOps project for binary classification of AI-generated vs real images and videos using deep learning.
 
-## Overview
+## Introduction
 
-Trains deep learning models to classify images as:
-- **REAL**: Authentic photographs
-- **FAKE**: AI-generated images
+The proliferation of AI-generated content has created a need for automated detection systems. This project implements a deep learning solution to distinguish between authentic and AI-generated images and videos, addressing challenges in content verification and media authenticity.
 
-Includes data preprocessing, model training, and inference pipelines.
+## Team
 
-## Features
+- Muhammad Basil
+- Taha Zahid
 
-- Data preprocessing: extraction, cleaning, resizing, balancing
-- Model architectures: EfficientNetB0 and custom CNNs
-- Data augmentation during training
-- Training pipeline with callbacks and checkpointing
-- Model evaluation and inference
+## MLOps Stack
+
+- **Airflow** - Workflow orchestration
+- **DagsHub** - Data versioning and collaboration
+- **MLflow** - Experiment tracking and model registry
+- **MongoDB** - Data storage
+- **Git** - Version control
+- **Deep Learning** - Model training
+
+## Technology
+
+- **EfficientNet** - Transfer learning model architecture
+- **FFmpeg** - Video frame extraction
+- **TensorFlow/Keras** - Deep learning framework
+
+## Proposed Methodology
+
+1. **Data Preprocessing**
+   - Extract video frames using FFmpeg
+   - Clean and resize images to 256x256
+   - Balance dataset classes
+   - Split into train/validation/test sets
+
+2. **Model Architecture**
+   - EfficientNetB0 with transfer learning (ImageNet weights)
+   - Two-phase training: frozen backbone then fine-tuning
+   - Data augmentation: rotation, flipping, zoom, brightness, contrast
+
+3. **MLOps Pipeline**
+   - Airflow orchestrates preprocessing and training workflows
+   - MLflow tracks experiments and model versions
+   - DagsHub manages data versioning
+   - MongoDB stores metadata and results
+   - Git for code version control
+
+4. **Training Process**
+   - Phase 1: Train with frozen EfficientNetB0 backbone (10 epochs)
+   - Phase 2: Fine-tune last 20 layers (10 epochs)
+   - Callbacks: ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
+
+## Initial Results
+
+- **Test Accuracy: 86%**
+- Model successfully distinguishes between real and AI-generated content
+- EfficientNetB0 transfer learning approach shows strong performance
+
+## Code
+
+Training code available in:
+- `train.py` - Main training script
+- `train.ipynb` - Jupyter notebook with full pipeline
+
+Key components:
+- Data preprocessing and augmentation
+- EfficientNetB0 model implementation
+- Training and evaluation loops
+- Model saving and inference
 
 ## Project Structure
 
 ```
 mlops/
-├── train.py          # Training script
-├── train.ipynb       # Jupyter notebook
+├── train.py
+├── train.ipynb
 └── README.md
 ```
+
+## Dataset
+
+Expected structure:
+```
+data/
+├── train/real/
+├── train/fake/
+├── val/real/
+├── val/fake/
+├── test/real/
+└── test/fake/
+```
+
+Videos are processed using FFmpeg to extract frames before training.
+
+## Usage
+
+```bash
+python train.py
+```
+
+Or use the Jupyter notebook `train.ipynb`.
 
 ## Requirements
 
@@ -33,132 +107,4 @@ mlops/
 pip install tensorflow keras numpy pillow matplotlib
 ```
 
-**Note**: Originally developed in Google Colab. For local execution:
-1. Remove Google Colab imports (`from google.colab import drive`)
-2. Update file paths to match local directory structure
-3. GPU support recommended for training
-
-## Dataset Structure
-
-Expected directory structure:
-
-```
-data/
-├── train/
-│   ├── real/
-│   └── fake/
-├── val/
-│   ├── real/
-│   └── fake/
-└── test/
-    ├── real/
-    └── fake/
-```
-
-### Preprocessing
-
-Scripts handle:
-- Dataset extraction from zip files
-- Removing corrupted images
-- Resizing to 256x256 pixels
-- Balancing real/fake classes
-- Creating train/validation/test splits
-
-## Model Architectures
-
-### EfficientNetB0
-
-- Base model: EfficientNetB0 with ImageNet weights
-- Input size: 256x256x3
-- Training: Frozen backbone (10 epochs), then fine-tune last 20 layers (10 epochs)
-- Features: Data augmentation, Global Average Pooling, Dropout (0.3), label smoothing (0.1)
-
-### Custom CNN (Basic)
-
-- 4 convolutional blocks: Conv2D → BatchNorm → MaxPooling
-- Binary classification with sigmoid activation
-- Dropout: 0.5
-
-### Custom CNN (Upgraded)
-
-- Enhanced 4-block CNN with double convolutions per block
-- Global Average Pooling instead of Flatten
-- Dropout: 0.6, label smoothing: 0.05
-- Training: 20 epochs
-
-## Usage
-
-### Training
-
-**Python script:**
-```bash
-python train.py
-```
-
-Modify the script to remove Colab dependencies and update paths.
-
-**Jupyter notebook:**
-Open `train.ipynb` and run cells sequentially.
-
-### Configuration
-
-Key parameters:
-```python
-IMG_SIZE = (256, 256)
-BATCH_SIZE = 32
-EPOCHS = 15-20
-LEARNING_RATE = 1e-4
-```
-
-## Training Process
-
-1. Data loading using `ImageDataGenerator` or `image_dataset_from_directory`
-2. Data augmentation: rotation, flipping, zoom, brightness, contrast
-3. Model compilation with Adam optimizer
-4. Callbacks: ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
-5. Training and validation
-6. Test set evaluation
-
-### Model Files
-
-- `custom_cnn_best.keras` - Best model by validation accuracy
-- `custom_cnn_last.keras` - Last epoch model
-- `custom_cnn_final.keras` - Final saved model
-- `custom_cnn_interrupted.keras` - Saved on interruption
-
-## Inference
-
-```python
-from tensorflow import keras
-from tensorflow.keras.preprocessing import image
-import numpy as np
-
-model = keras.models.load_model("path/to/model.keras")
-
-img = image.load_img("path/to/image.jpg", target_size=(256, 256))
-img_array = image.img_to_array(img)
-img_array = np.expand_dims(img_array, axis=0)
-img_array = img_array / 255.0
-
-pred = model.predict(img_array)
-label = "REAL" if pred[0][0] > 0.5 else "FAKE"
-confidence = pred[0][0] if pred[0][0] > 0.5 else 1 - pred[0][0]
-
-print(f"Prediction: {label} (Confidence: {confidence:.4f})")
-```
-
-## Workflow
-
-1. Data preparation: extract, clean, resize, balance, split
-2. Model development: choose architecture, configure hyperparameters
-3. Training: train with callbacks, monitor metrics, save checkpoints
-4. Evaluation: test set evaluation
-5. Inference: load model and make predictions
-
-## Notes
-
-- Originally developed in Google Colab
-- Code paths reference Colab directories (`/content/data`, `/content/drive`)
-- Update paths for local execution
-- GPU acceleration recommended
-- Dataset should be balanced
+**Note**: Originally developed in Google Colab. Update paths and remove Colab-specific imports for local execution.
