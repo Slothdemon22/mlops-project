@@ -1,3 +1,5 @@
 # Ignore datasets
 final_dataset_v2*
 best_model.keras
+!final_dataset_v2.dvc
+/final_dataset_v3
